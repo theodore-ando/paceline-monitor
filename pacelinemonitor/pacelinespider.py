@@ -15,8 +15,6 @@ else:
     database = {}
 
 
-
-
 def scrape_first_page_forum(forum_id='6'):
     pagecontent = load_forum(forum_id=forum_id)
     soup = BeautifulSoup(pagecontent, features='lxml')
@@ -48,17 +46,19 @@ def scrape_thread(thread_id, href):
     return initial_post_text
 
 
-PATTERNS = [re.compile('gravel', re.IGNORECASE)]
-
-if __name__ == '__main__':
+def search_classifieds(patterns):
     thread_ids = scrape_first_page_forum()
     for thread_id, href in thread_ids:
         if thread_id in database:
             continue
         print(f'new thread: {thread_id}')
         thread_text = scrape_thread(thread_id, href)
-        matches = [(p, p.search(thread_text)) for p in PATTERNS]
+        matches = [(p, p.search(thread_text)) for p in patterns]
         for p, match in matches:
             if match:
+                database[thread_id] = href
                 print("MATCHED:", href, p, match)
-        time.sleep(1)
+        time.sleep(1)  # don't wanna be too mean and overload paceline
+
+    with open(DB_FNAME, 'w') as writer:
+        json.dump(database, writer)
