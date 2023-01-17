@@ -8,10 +8,8 @@ CACHE_DIR = './cache/'
 
 
 def load_forum(forum_id='6') -> Optional[str]:
-    with open('sample.html') as reader:
-        return reader.read()
-    # url = f'https://forums.thepaceline.net/forumdisplay.php?f={forum_id}'
-    # return _load(url)
+    url = f'https://forums.thepaceline.net/forumdisplay.php?f={forum_id}'
+    return _load(url)
 
 
 def load_thread(href: str) -> Optional[str]:
