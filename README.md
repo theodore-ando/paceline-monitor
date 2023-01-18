@@ -5,6 +5,12 @@ paceline every day. You provide a list of regular expressions, and the monitor w
 hourly cron job to check the new listings. If any listing matches any of your patterns, then
 you will receive an email with a list of results and links to the threads.
 
+In order to be polite and avoid overwhelming The Paceline's servers, the paceline-monitor will both
+cache the threads in a local download and will wait for a time between successive requests to
+download new threads.  The cache has a configurable TTL.  This TTL determines both how long some
+metadata is kept about the thread (such as id, url, whether it matched) as well as the downloaded 
+HTML file containing the state of the thread at the time of reading.  
+
 ## Install
 
 Use `pipenv` to install: 
@@ -18,7 +24,7 @@ pipenv install
 ### SMTP Server
 
 In order to receive email notifications on the new listings, you must have access to an SMTP
-server. Currently, the app is setup to use a gmail app password. If you have another SMTP server
+server. Currently, the app is set up to use a gmail app password. If you have another SMTP server
 you would like to use, visit [notification.py](pacelinemonitor/notification.py) and amend it to
 your needs. Otherwise, follow the below instructions.
 
@@ -79,9 +85,13 @@ This will allow you to test out your patterns or email config (by using `--email
 pipenv run ./entrypoint.py init
 ```
 
-## Caveats
+## Configuring
 
-Currently, indefinitely stores a cache of downloaded threads, which you could clear periodically.
+There are some configurable options available in [conf.py](pacelinemonitor/conf.py).  In here, you
+can configure the location of the secrets file, the database file, and specify the TTL on the 
+cached results.
+
+## Caveats
 
 Currently, only searches first page of classifieds.  If more than a page appears in an hour then 
 you are SoL.

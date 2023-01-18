@@ -1,16 +1,11 @@
-import functools
-import json
 import os
 import pickle
 import time
 from dataclasses import dataclass
-from datetime import timedelta
-from typing import Optional, Dict, NamedTuple
+from typing import Optional, Dict
 
+from pacelinemonitor.conf import DB_FNAME, TTL
 from pacelinemonitor.pacelinethread import PacelineThread
-
-DB_FNAME = 'database.pickle'
-TTL = timedelta(days=1).total_seconds()
 
 
 @dataclass

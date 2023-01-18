@@ -3,9 +3,10 @@ import smtplib
 from email.mime.text import MIMEText
 from typing import List
 
+from pacelinemonitor.conf import SECRETS_FNAME
 from pacelinemonitor.pacelinespider import PacelineResult
 
-with open("secrets.json") as secretsfp:
+with open(SECRETS_FNAME) as secretsfp:
     secrets = json.load(secretsfp)
     user = secrets['user']
     pwd = secrets['pwd']

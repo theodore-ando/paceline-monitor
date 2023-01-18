@@ -6,6 +6,7 @@ from typing import Optional
 import requests
 from requests import PreparedRequest
 
+from pacelinemonitor.conf import NEW_THREAD_DELAY_SECS
 from pacelinemonitor.datacacher import get_cache, CacheEntry
 from pacelinemonitor.pacelinethread import PacelineThread
 
@@ -52,7 +53,7 @@ def load_thread(thread: PacelineThread) -> Optional[str]:
     )
 
     print(f'new thread: {thread.thread_id}')
-    time.sleep(1)  # don't wanna be too mean and overload paceline
+    time.sleep(NEW_THREAD_DELAY_SECS)  # don't wanna be too mean and overload paceline
     contents = _load(url)
     with open(fpath, 'w') as writer:
         writer.write(contents)
