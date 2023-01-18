@@ -30,6 +30,7 @@ class PacelineCache:
             with open(DB_FNAME, 'rb') as db_reader:
                 database = pickle.load(db_reader)
         else:
+            print(f'Could not find existing database file {fname}')
             database = None
         return PacelineCache(data=database)
 

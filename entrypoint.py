@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 import re
 from typing import List
 
@@ -45,10 +46,14 @@ def init():
     cron.remove_all(comment='pacelinemonitor')
 
     job = cron.new(
-        command=f'cd {cwd} && pipenv run python entrypoint.py scrape --email --debug',
+        command=f'cd {cwd} '
+                f'&& export PATH=/usr/local/bin:$PATH '
+                f'&& export WORKON_HOME={os.environ.get("WORKON_HOME")} '
+                f'&& pipenv run python entrypoint.py scrape --email '
+                f'> /tmp/cron-out.txt 2>/tmp/cron-err.txt',
         comment='pacelinemonitor'
     )
-    job.setall('0 * * * *')
+    job.setall('0 * * * *')  # hourly cron job
     cron.write()
 
 
