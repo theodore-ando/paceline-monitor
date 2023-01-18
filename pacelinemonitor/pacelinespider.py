@@ -2,21 +2,21 @@ import json
 import os.path
 import re
 import time
+from typing import List, Set, NamedTuple
 
 from bs4 import BeautifulSoup
 
+from pacelinemonitor.datacacher import PacelineCache, CacheEntry, get_cache
 from pacelinemonitor.dataloader import load_thread, load_forum, full_url
 from pacelinemonitor.pacelinethread import PacelineThread
 
-DB_FNAME = 'database.json'
-if os.path.exists(DB_FNAME):
-    with open(DB_FNAME) as db_reader:
-        database = json.load(db_reader)
-else:
-    database = {}
+CLASSIFIED_FORUM_ID = '6'
 
-
-def scrape_first_page_forum(forum_id='6'):
+class PacelineResult(NamedTuple):
+    thread: PacelineThread
+    url: str
+    pattern: str
+def scrape_first_page_forum(forum_id=CLASSIFIED_FORUM_ID) -> Set[PacelineThread]:
     pagecontent = load_forum(forum_id=forum_id)
     soup = BeautifulSoup(pagecontent, features='lxml')
     threadtable = soup.find(id="threadslist")
@@ -31,12 +31,18 @@ def scrape_first_page_forum(forum_id='6'):
             if link.get('id', '').startswith('thread_title_'):
                 thread_id = link.get('id').split('_')[2]
                 href = link.get('href')
-                thread_ids.add((thread_id, href))
+                thread_ids.add(PacelineThread(thread_id, href))
     return thread_ids
 
 
-def scrape_thread(thread_id, href):
-    pagecontent = load_thread(thread_id, href)
+def scrape_thread(thread: PacelineThread) -> (str, str):
+    """
+    Extract the title, and initial post text content from the thread
+    :param thread_id: id of the thread to scrape
+    :param href: link to the thread
+    :return: (thread title, thread title + initial post text)
+    """
+    pagecontent = load_thread(thread)
     soup = BeautifulSoup(pagecontent, features='lxml')
     main_div = soup.find(id='posts')
     main_thread = main_div.find('table')
@@ -55,22 +61,28 @@ def scrape_thread(thread_id, href):
     return title_text, title_text + '\n\n' + initial_post_text
 
 
-def search_classifieds(patterns):
-    thread_ids = scrape_first_page_forum()
+def search_classifieds(patterns: List[re.Pattern]):
+    """
+    Search classified forum for any listings matching any pattern in patterns
+    :param patterns:
+    :return:
+    """
+    cache = get_cache()
+    threads = scrape_first_page_forum()
     new_results = []
-    for thread_id, href in thread_ids:
-        if thread_id in database:
-            continue
-        title, full_text = scrape_thread(thread_id, href)
+
+    for thread in threads:
+        title, full_text = scrape_thread(thread)
         matches = [(p, p.search(full_text)) for p in patterns]
+
         for p, match in matches:
             if match:
-                database[thread_id] = href
-                print(f"MATCHED {thread_id}:", href, p, match)
+                cache[thread].is_match = True
+                print(f"MATCHED {thread.thread_id}:", p, match)
+                new_results.append(
+                    PacelineResult(thread, full_url(thread.link), p.pattern)
+                )
 
-                new_results.append(PacelineThread(thread_id, title, full_url(href)))
-
-    with open(DB_FNAME, 'w') as writer:
-        json.dump(database, writer)
+    cache.save()
 
     return new_results

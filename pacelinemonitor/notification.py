@@ -3,7 +3,7 @@ import smtplib
 from email.mime.text import MIMEText
 from typing import List
 
-from pacelinemonitor.pacelinethread import PacelineThread
+from pacelinemonitor.pacelinespider import PacelineResult
 
 with open("secrets.json") as secretsfp:
     secrets = json.load(secretsfp)
@@ -13,13 +13,13 @@ with open("secrets.json") as secretsfp:
     to_addr = secrets['to']
 
 
-def notify(results: List[PacelineThread], no_email=False):
+def notify(results: List[PacelineResult], no_email=False):
     n = len(results)
     subject = f'PACELINE: {n} new results on your search'
     body = "The following (new) matches were found for your scheduled search:"
     for result in results:
-        body += f"\n[{result.thread_id}] {result.title} ({result.link})"
-    body += "\n Thank you for using paceline-monitor® †††"
+        body += f"\n[{result.thread.thread_id}] {result.pattern} ({result.url})"
+    body += "\n\n Thank you for using paceline-monitor® †††"
 
     msg = MIMEText(body)
     msg['From'] = from_addr
@@ -28,6 +28,7 @@ def notify(results: List[PacelineThread], no_email=False):
 
     if no_email:
         print(msg)
+        print(body)
     else:
         s = smtplib.SMTP('smtp.gmail.com', 587)
         s.starttls()
