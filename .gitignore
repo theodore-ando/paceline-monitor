@@ -2,6 +2,6 @@
 .DS_Store
 *.pyc
 *.html
-database.json
+database.pickle
 secrets.json
 patterns.txt

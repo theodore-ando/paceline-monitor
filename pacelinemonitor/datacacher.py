@@ -1,17 +1,20 @@
 import functools
 import json
 import os
+import pickle
 import time
+from dataclasses import dataclass
 from datetime import timedelta
 from typing import Optional, Dict, NamedTuple
 
 from pacelinemonitor.pacelinethread import PacelineThread
 
-DB_FNAME = 'database.json'
+DB_FNAME = 'database.pickle'
 TTL = timedelta(days=1).total_seconds()
 
 
-class CacheEntry(NamedTuple):
+@dataclass
+class CacheEntry:
     thread: PacelineThread
     load_time: float
     cached_file: str
@@ -29,8 +32,8 @@ class PacelineCache:
     @classmethod
     def from_file(cls, fname=DB_FNAME):
         if os.path.exists(fname):
-            with open(DB_FNAME) as db_reader:
-                database = json.load(db_reader)
+            with open(DB_FNAME, 'rb') as db_reader:
+                database = pickle.load(db_reader)
         else:
             database = None
         return PacelineCache(data=database)
@@ -42,8 +45,8 @@ class PacelineCache:
                 del self.data[thread_id]
 
     def save(self, fname=DB_FNAME):
-        with open(fname, 'w') as fp:
-            json.dump(self.data, fp)
+        with open(fname, 'wb') as fp:
+            pickle.dump(self.data, fp)
 
     def __contains__(self, thread: PacelineThread):
         return thread in self.data

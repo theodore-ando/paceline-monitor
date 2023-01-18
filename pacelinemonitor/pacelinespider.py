@@ -78,7 +78,7 @@ def search_classifieds(patterns: List[re.Pattern]):
         for p, match in matches:
             if match:
                 cache[thread].is_match = True
-                print(f"MATCHED {thread.thread_id}:", p, match)
+                print(f"MATCHED {thread.thread_id}:", p.pattern, match)
                 new_results.append(
                     PacelineResult(thread, full_url(thread.link), p.pattern)
                 )

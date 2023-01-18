@@ -47,7 +47,7 @@ def load_thread(thread: PacelineThread) -> Optional[str]:
     cache[thread] = CacheEntry(
         thread=thread,
         load_time=time.time(),
-        cached_file=fname,
+        cached_file=fpath,
         is_match=False
     )
 
