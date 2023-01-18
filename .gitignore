@@ -2,5 +2,6 @@
 .DS_Store
 *.pyc
 *.html
-
+database.json
 secrets.json
+patterns.txt

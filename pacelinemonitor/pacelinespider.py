@@ -5,7 +5,8 @@ import time
 
 from bs4 import BeautifulSoup
 
-from pacelinemonitor.dataloader import load_thread, load_forum
+from pacelinemonitor.dataloader import load_thread, load_forum, full_url
+from pacelinemonitor.pacelinethread import PacelineThread
 
 DB_FNAME = 'database.json'
 if os.path.exists(DB_FNAME):
@@ -35,30 +36,41 @@ def scrape_first_page_forum(forum_id='6'):
 
 
 def scrape_thread(thread_id, href):
-    pagecontent = load_thread(href)
+    pagecontent = load_thread(thread_id, href)
     soup = BeautifulSoup(pagecontent, features='lxml')
     main_div = soup.find(id='posts')
     main_thread = main_div.find('table')
+
+    # get the thread title
+    initial_row = main_thread.find_all('tr')[3]  # first rows are metadata about thread
+    title_div = initial_row.find_next('div')
+    title_text = title_div.text.strip()
+    print(title_text)
+
+    # get the body of the initial post
     post_id = main_thread['id'][4:]
     initial_post = main_thread.find(id=f'post_message_{post_id}')
     initial_post_text = initial_post.text.strip()
     initial_post_text = re.sub('\s+', ' ', initial_post_text)
-    return initial_post_text
+    return title_text, title_text + '\n\n' + initial_post_text
 
 
 def search_classifieds(patterns):
     thread_ids = scrape_first_page_forum()
+    new_results = []
     for thread_id, href in thread_ids:
         if thread_id in database:
             continue
-        print(f'new thread: {thread_id}')
-        thread_text = scrape_thread(thread_id, href)
-        matches = [(p, p.search(thread_text)) for p in patterns]
+        title, full_text = scrape_thread(thread_id, href)
+        matches = [(p, p.search(full_text)) for p in patterns]
         for p, match in matches:
             if match:
                 database[thread_id] = href
-                print("MATCHED:", href, p, match)
-        time.sleep(1)  # don't wanna be too mean and overload paceline
+                print(f"MATCHED {thread_id}:", href, p, match)
+
+                new_results.append(PacelineThread(thread_id, title, full_url(href)))
 
     with open(DB_FNAME, 'w') as writer:
         json.dump(database, writer)
+
+    return new_results
