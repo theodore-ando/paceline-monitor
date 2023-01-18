@@ -5,6 +5,7 @@ from typing import List
 import click
 from crontab import CronTab
 
+from pacelinemonitor.conf import CRON_USER
 from pacelinemonitor.notification import notify
 from pacelinemonitor.pacelinespider import search_classifieds
 
@@ -27,10 +28,11 @@ def cli():
 @cli.command()
 @click.option('--patternfile', '-p', default='patterns.txt')
 @click.option('--email/--no-email', default=False)
-def scrape(patternfile, email):
+@click.option('--debug/--no-debug', default=False)
+def scrape(patternfile, email, debug):
     patterns = load_patterns(patternfile)
     new_results = search_classifieds(patterns)
-    if new_results:
+    if new_results or debug:
         for res in new_results:
             print(res)
         notify(new_results, no_email=not email)
@@ -39,14 +41,14 @@ def scrape(patternfile, email):
 @cli.command()
 def init():
     cwd = pathlib.Path().resolve()
-    cron = CronTab()
+    cron = CronTab(user=CRON_USER)
     cron.remove_all(comment='pacelinemonitor')
 
     job = cron.new(
-        command=f'cd {cwd} && pipenv run entrypoint.py scrape --email',
+        command=f'cd {cwd} && pipenv run python entrypoint.py scrape --email --debug',
         comment='pacelinemonitor'
     )
-    job.hour.every(1)
+    job.setall('0 * * * *')
     cron.write()
 
 

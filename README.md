@@ -13,11 +13,13 @@ HTML file containing the state of the thread at the time of reading.
 
 ## Install
 
-Use `pipenv` to install: 
+Use `pipenv` to install dependencies
 ```shell
 pip3 install --user pipenv
 pipenv install 
 ```
+This will create a python virtual environment for this project and install dependencies within that
+environment. 
 
 ## Setup
 
@@ -32,7 +34,7 @@ First, you must allow an app access to your gmail account. This can be done by v
 `Account Settings > Security > Signing in to Google`, under this section you will find
 `App Passwords`. If you do not see it, this is probably because you have not enabled two-factor
 security which honestly you should've enabled already >:(. Create an app password and copy it
-somewhere temporarily. It will only be shown to you once, so don't lose it or you'll have to
+somewhere temporarily. It will only be shown to you once, so don't lose it, or you'll have to
 create it again.
 
 ### Credentials
@@ -50,11 +52,20 @@ the file is excluded by the `.gitignore`, but do not manually add it or push it.
 }
 ```
 
+### Configuring
+
+At a minimum you will need to add your computer login username to the config file [conf.py](pacelinemonitor/conf.py). 
+This is because generally you will be using a crontab associated only with your account on the 
+computer and not a system-wide one.  
+
+There are some other configurable options available in that same file.  You can configure the
+location of the secrets file, the database file, and specify the TTL on the cached results.
+
 ## Usage
 
 You can invoke the tool by running 
 ```shell
-pipenv run ./entrypoint.py
+pipenv run python entrypoint.py
 ```
 It will show you help messages.
 
@@ -75,21 +86,15 @@ text of the post+title irrespective of upper/lower case.
 
 You can manually run the monitor by invoking the entrypoint script:
 ```bash
-pipenv run ./entrypoint scrape --no-email
+pipenv run python entrypoint.py scrape --no-email
 ```
 This will allow you to test out your patterns or email config (by using `--email` instead).
 
 ### Create the cron job
 
 ```bash
-pipenv run ./entrypoint.py init
+pipenv run python entrypoint.py init
 ```
-
-## Configuring
-
-There are some configurable options available in [conf.py](pacelinemonitor/conf.py).  In here, you
-can configure the location of the secrets file, the database file, and specify the TTL on the 
-cached results.
 
 ## Caveats
 
