@@ -2,6 +2,7 @@ import base64
 import os
 import time
 from typing import Optional
+from urllib.parse import urlparse, parse_qs, urlencode
 
 import requests
 from requests import PreparedRequest
@@ -30,6 +31,22 @@ def load_forum(forum_id='6', page=1) -> Optional[str]:
 def full_url(href):
     """href from internal paceline links aren't full url"""
     return f'https://forums.thepaceline.net/{href}'
+
+
+def desearch_thread_href(href: str):
+    """
+    Often the href to threads from the main page have unnecessary params that work only temporarily
+    and contain data about the search itself.  This normalizes the href to just be the relative
+    site path for the thread.  E.g.
+      'showthread.php?s=7b3f0b7ebe9ddd8a9c17cff04a255929&t=291638' -> 'showthread.php?t=291638
+    :param href:
+    :return:
+    """
+    parse_res = urlparse(href)
+    query = parse_qs(parse_res.query)
+    new_query = urlencode({'t': query['t'][0]})
+    return parse_res._replace(query=new_query).geturl()
+
 
 
 def load_thread(thread: PacelineThread) -> Optional[str]:

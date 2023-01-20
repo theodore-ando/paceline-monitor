@@ -7,15 +7,18 @@ from typing import List, Set, NamedTuple
 from bs4 import BeautifulSoup
 
 from pacelinemonitor.datacacher import PacelineCache, CacheEntry, get_cache
-from pacelinemonitor.dataloader import load_thread, load_forum, full_url
+from pacelinemonitor.dataloader import load_thread, load_forum, full_url, desearch_thread_href
 from pacelinemonitor.pacelinethread import PacelineThread
 
 CLASSIFIED_FORUM_ID = '6'
+
 
 class PacelineResult(NamedTuple):
     thread: PacelineThread
     url: str
     pattern: str
+
+
 def scrape_first_page_forum(forum_id=CLASSIFIED_FORUM_ID) -> Set[PacelineThread]:
     pagecontent = load_forum(forum_id=forum_id)
     soup = BeautifulSoup(pagecontent, features='lxml')
@@ -31,6 +34,7 @@ def scrape_first_page_forum(forum_id=CLASSIFIED_FORUM_ID) -> Set[PacelineThread]
             if link.get('id', '').startswith('thread_title_'):
                 thread_id = link.get('id').split('_')[2]
                 href = link.get('href')
+                href = desearch_thread_href(href)
                 thread_ids.add(PacelineThread(thread_id, href))
     return thread_ids
 
@@ -76,7 +80,7 @@ def search_classifieds(patterns: List[re.Pattern]):
         matches = [(p, p.search(full_text)) for p in patterns]
 
         for p, match in matches:
-            if match:
+            if match and not cache[thread].is_match:
                 cache[thread].is_match = True
                 print(f"MATCHED {thread.thread_id}:", p.pattern, match)
                 new_results.append(
